@@ -11,25 +11,11 @@ let read_file ic =
   in
   read [] |> List.rev |> String.concat ""
 
-let regex = Str.regexp "mul(\\([0-9]+\\),\\([0-9]+\\))"
+let regex_mul = Str.regexp "mul(\\([0-9]+\\),\\([0-9]+\\))"
 let regex_mul_part_2 = Str.regexp "mul(\\([0-9]+\\),\\([0-9]+\\))\\|don't()"
 let regex_do_part_2 = Str.regexp "do()"
 
-let calculate_total str =
-  let rec calculate str acc =
-    try
-      let _ = Str.search_forward regex str 0 in
-      let a = Str.matched_group 1 str |> int_of_string in
-      let b = Str.matched_group 2 str |> int_of_string in
-
-      let result = a * b in
-      let new_str = Str.replace_first regex (string_of_int result) str in
-      calculate new_str (acc + result)
-    with Not_found -> acc
-  in
-  calculate str 0
-
-let calculate_total_part_2 str =
+let calculate_total str regexp =
   let rec calculate str regexp acc =
     try
       let _ = Str.search_forward regexp str 0 in
@@ -43,18 +29,17 @@ let calculate_total_part_2 str =
       | cmd when String.starts_with ~prefix:"mul" cmd ->
           let a = Str.matched_group 1 str |> int_of_string in
           let b = Str.matched_group 2 str |> int_of_string in
-          let result = a * b in
-          calculate new_str regexp (acc + result)
+          calculate new_str regexp (acc + (a * b))
       | _ -> acc
     with Not_found -> acc
   in
-  calculate str regex_mul_part_2 0
+  calculate str regexp 0
 
 let () =
   let ic = open_in filename in
-  read_file ic |> calculate_total |> Printf.sprintf "Sum %d" |> print_endline;
+  let data = read_file ic in
+  calculate_total data regex_mul |> Printf.sprintf "Sum %d" |> print_endline;
 
-  let ic = open_in filename in
-  read_file ic |> calculate_total_part_2
+  calculate_total data regex_mul_part_2
   |> Printf.sprintf "Part 2 Sum %d"
   |> print_endline
