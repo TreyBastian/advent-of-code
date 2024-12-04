@@ -1,0 +1,2 @@
+(executable (name day_01)
+(libraries str))
