@@ -1,32 +1,30 @@
 let filename = "./day_01_input.txt"
+let try_read ic = try Some (input_line ic) with End_of_file -> None
+
+let line_to_ints s =
+  Str.split_delim (Str.regexp "   ") s |> List.map int_of_string
+
+let rec read_lines left right ic =
+  match try_read ic with
+  | Some line -> (
+      line_to_ints line |> fun ints ->
+      match ints with
+      | [ a; b ] -> read_lines (a :: left) (b :: right) ic
+      | _ -> failwith "invalid")
+  | None ->
+      close_in ic;
+      (List.sort compare left, List.sort compare right)
+
+let calc_sum left right =
+  List.map2 ( - ) left right |> List.map abs |> List.fold_left ( + ) 0
+
+let calc_sim left right =
+  List.map
+    (fun x -> x * (List.filter (fun y -> x == y) right |> List.length))
+    left
+  |> List.fold_left ( + ) 0
 
 let () =
-  let ic = open_in filename in
-
-  let try_read () = try Some (input_line ic) with End_of_file -> None in
-
-  let rec read_lines left right =
-    match try_read () with
-    | Some line -> (
-        let ints =
-          Str.split_delim (Str.regexp "   ") line |> List.map int_of_string
-        in
-        match ints with
-        | [ a; b ] -> read_lines (a :: left) (b :: right)
-        | _ -> failwith "invalid")
-    | None ->
-        close_in ic;
-        (List.sort compare left, List.sort compare right)
-  in
-  let left, right = read_lines [] [] in
-  let sum =
-    List.map2 ( - ) left right |> List.map abs |> List.fold_left ( + ) 0
-  in
-  Printf.sprintf "Sum %d" sum |> print_endline;
-  let sim =
-    List.map
-      (fun x -> x * (List.filter (fun y -> x == y) right |> List.length))
-      left
-    |> List.fold_left ( + ) 0
-  in
-  Printf.sprintf "Sim %d" sim |> print_endline
+  let left, right = open_in filename |> read_lines [] [] in
+  calc_sum left right |> Printf.sprintf "Sum %d" |> print_endline;
+  calc_sim left right |> Printf.sprintf "Sim %d" |> print_endline
