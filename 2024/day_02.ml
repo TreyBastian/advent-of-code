@@ -46,4 +46,5 @@ let () =
 
   let ic = open_in filename in
   calculate_safe_score ic is_line_safe_part_2
-  |> Printf.sprintf "Safe %d" |> print_endline
+  |> Printf.sprintf "Part 2 Safe %d"
+  |> print_endline

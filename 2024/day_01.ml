@@ -27,4 +27,4 @@ let calc_sim left right =
 let () =
   let left, right = open_in filename |> read_lines [] [] in
   calc_sum left right |> Printf.sprintf "Sum %d" |> print_endline;
-  calc_sim left right |> Printf.sprintf "Sim %d" |> print_endline
+  calc_sim left right |> Printf.sprintf "Part 2 Simularity %d" |> print_endline
