@@ -38,7 +38,7 @@ program day_09
    integer :: io, ios, i, j, block_n, ct, block_start, block_end, space_start, space_end
    integer(kind=int64) :: res
    character(len=1) :: c
-   integer, allocatable :: system(:), work(:)
+   integer, allocatable :: system(:), work(:), done(:)
    logical :: is_space, space_block_start
 
    open(newunit=io, file='./day_09_input.txt', status='old', action='read', access='stream')
@@ -97,18 +97,30 @@ program day_09
    block_n = -1
    block_start = -1
    block_end = -1
-   do i = 0, size(work) -1
-      if(block_n == -1 .and. work(size(work) - i) > -1) then
+   do i = size(work), 1, -1
+      if(block_n == -1 .and. work(i) /= -1) then
          ! we are starting a block
-         block_end = size(work) - i
-         block_n = work(size(work) - i)
-      else if (block_n /= -1 .and. block_n /= work(size(work)-i)) then
+         block_end = i
+         block_n = work(i)
+         if(allocated(done) .and. count(done == block_n) > 0) then
+            block_n = -1
+            block_start = -1
+            block_end = -1
+            cycle
+         else if(.not. allocated(done)) then
+            allocate(done(1))
+            done(1) = block_n
+         else
+            call append_to_integer_array_times(done, block_n, 1)
+         end if
+      else if (block_n /= -1 .and. block_n /= work(i)) then
          ! we are ending the block
-         block_start = size(work) - i
+         block_start = i
+
          ! lets try to move the block
          space_block_start = .true.
          do j = 1, size(work)
-            if (j >= block_start) exit
+            if (j > block_start) exit
             if(space_block_start .and. work(j) == -1) then
                space_start = j
                space_block_start = .false.
@@ -116,23 +128,21 @@ program day_09
                space_end = j
                space_block_start = .true.
                if(space_end - space_start >= block_end - block_start) then
-                  work(space_start:(space_start + (block_end - (block_start +1) ))) = work((block_start +1):block_end)
+                  work(space_start:space_start + (block_end - (block_start +1))) = block_n
                   work(block_start+1:block_end) = -1
-                  block_n = -1
-                  block_start = -1
-                  block_end = -1
-
                   exit
                end if
+               space_end = -1
+               space_start = -1
             end if
          end do
-         block_n = work(size(work) - i)
-         block_end = size(work) - i
+         block_n = work(i)
+         block_end = i
          block_start = -1
       end if
    end do
    do i = 1, size(work)
-      if(work(i) > -1) then
+      if(work(i) /= -1) then
          res = res + ((i-1) * work(i))
       end if
    end do
